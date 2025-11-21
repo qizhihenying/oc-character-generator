@@ -1,0 +1,12 @@
+{
+  "version": "1.2.0",
+  "releaseDate": "2025-11-21",
+  "downloadUrl": "https://github.com/YOUR_USERNAME/oc-character-generator/releases/download/v1.2.0/OC人设盲盒-Setup-1.2.0.exe",
+  "changelog": [
+    "新增人物一致性模式（种子/参考图/组合）",
+    "新增特征锁定功能",
+    "优化中文提示词格式",
+    "修复已知问题"
+  ],
+  "forceUpdate": false
+}
