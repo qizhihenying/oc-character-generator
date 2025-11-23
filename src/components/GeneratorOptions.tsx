@@ -3,7 +3,7 @@ import { Settings, Wand2 } from 'lucide-react';
 
 export interface GeneratorConfig {
   gender: 'male' | 'female' | 'any';
-  style: 'anime' | 'fantasy' | 'chinese' | 'cyberpunk' | 'gothic' | 'modern' | 'any';
+  style: 'anime' | 'fantasy' | 'chinese' | 'cyberpunk' | 'gothic' | 'modern' | 'ghibli' | 'any';
   customWish: string;
   seed: string;
   useSeed: boolean;
@@ -30,7 +30,8 @@ const GeneratorOptions: React.FC<GeneratorOptionsProps> = ({ config, onChange })
     { value: 'fantasy', label: '奇幻风格' },
     { value: 'cyberpunk', label: '赛博朋克' },
     { value: 'gothic', label: '哥特风格' },
-    { value: 'modern', label: '现代风格' }
+    { value: 'modern', label: '现代风格' },
+    { value: 'ghibli', label: '吉卜力风格' }
   ];
 
   return (

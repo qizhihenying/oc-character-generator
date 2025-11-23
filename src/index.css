@@ -9,16 +9,39 @@
   
   body {
     @apply bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 min-h-screen;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* 暗黑模式 */
+  .dark body {
+    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900;
   }
 }
 
 @layer components {
   .glass-card {
     @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl;
+    @apply dark:bg-gray-800/80 dark:border-gray-700/20;
   }
   
   .gradient-text {
     @apply bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent;
+  }
+  
+  /* 按钮暗色模式 */
+  .btn-primary {
+    @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white;
+    @apply hover:from-purple-600 hover:to-pink-600;
+  }
+  
+  /* 输入框暗色模式 */
+  input, select, textarea {
+    @apply dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600;
+  }
+  
+  /* 标签暗色模式 */
+  label {
+    @apply dark:text-gray-300;
   }
 }
 
