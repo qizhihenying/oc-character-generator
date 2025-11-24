@@ -237,7 +237,7 @@ const MJDrawButton: React.FC<MJDrawButtonProps> = ({ prompt, onConfigClick, disa
           {!isConfigured && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
               <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                ⚠️ 尚未配置 Midjourney API，点击"配置 API"按钮进行设置
+                ⚠️ 尚未配置 API，点击"配置 API"按钮进行设置
               </p>
             </div>
           )}

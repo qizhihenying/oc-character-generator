@@ -1,11 +1,12 @@
 /**
- * Midjourney API 服务
- * 处理与第三方 Midjourney API 的交互
+ * 绘图 API 服务
+ * 处理与第三方绘图 API 的交互（支持 Midjourney 和其他中转服务）
  */
 
 export interface MJConfig {
   apiKey: string;
   baseUrl: string;
+  modelName?: string; // 模型名称，支持各种中转API提供商
   notifyHook?: string;
 }
 
@@ -105,7 +106,7 @@ class MidjourneyAPI {
    */
   async submitImagine(request: SubmitImagineRequest): Promise<MJTask> {
     if (!this.isConfigured()) {
-      throw new Error('Midjourney API 未配置，请先配置 API Key');
+      throw new Error('API 未配置，请先配置 API Key');
     }
 
     const url = `${this.config!.baseUrl}/mj/submit/imagine`;
@@ -166,7 +167,7 @@ class MidjourneyAPI {
    */
   async queryTask(taskId: string): Promise<TaskQueryResponse> {
     if (!this.isConfigured()) {
-      throw new Error('Midjourney API 未配置');
+      throw new Error('API 未配置');
     }
 
     const url = `${this.config!.baseUrl}/mj/task/${taskId}/fetch`;
@@ -300,7 +301,7 @@ class MidjourneyAPI {
    */
   async submitAction(action: MJAction): Promise<MJTask> {
     if (!this.isConfigured()) {
-      throw new Error('Midjourney API 未配置');
+      throw new Error('API 未配置');
     }
 
     const url = `${this.config!.baseUrl}/mj/submit/action`;

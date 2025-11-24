@@ -10,6 +10,7 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
   const [config, setConfig] = useState<MJConfig>({
     apiKey: '',
     baseUrl: 'https://api.vectorengine.ai',
+    modelName: 'midjourney',
     notifyHook: '',
   });
   const [saved, setSaved] = useState(false);
@@ -111,7 +112,7 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
           <div className="flex items-center gap-3">
             <Settings className="text-purple-600" size={24} />
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-              Midjourney API 配置
+              API 配置
             </h2>
           </div>
           <button
@@ -133,14 +134,14 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
               type="password"
               value={config.apiKey}
               onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-              placeholder="输入你的 Midjourney API Key"
+              placeholder="输入你的 API Key"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
                        bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                        focus:ring-2 focus:ring-purple-500 focus:border-transparent
                        transition-all"
             />
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              从你的 Midjourney API 服务商获取
+              从你的 API 服务商获取
             </p>
           </div>
 
@@ -161,6 +162,26 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
             />
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               API 服务的基础地址
+            </p>
+          </div>
+
+          {/* Model Name (Optional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              模型名称 (可选)
+            </label>
+            <input
+              type="text"
+              value={config.modelName || ''}
+              onChange={(e) => setConfig({ ...config, modelName: e.target.value })}
+              placeholder="midjourney, niji, 或其他中转API支持的模型"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                       focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                       transition-all"
+            />
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              指定使用的模型名称，支持各种中转API提供商的模型配置
             </p>
           </div>
 
