@@ -3,11 +3,21 @@
  * 处理与第三方绘图 API 的交互（支持 Midjourney 和其他中转服务）
  */
 
+import { APIFormat, getAdapter } from './apiFormats';
+
 export interface MJConfig {
   apiKey: string;
   baseUrl: string;
   modelName?: string; // 模型名称，支持各种中转API提供商
   notifyHook?: string;
+  apiFormat?: APIFormat; // API 格式类型
+  botType?: 'MID_JOURNEY' | 'NIJI_JOURNEY'; // 机器人类型
+  customEndpoints?: {
+    submit?: string;
+    query?: string;
+    action?: string;
+  }; // 自定义接口路径
+  requiresAuth?: 'bearer' | 'query' | 'header'; // 认证方式
 }
 
 export interface MJTask {
@@ -109,55 +119,45 @@ class MidjourneyAPI {
       throw new Error('API 未配置，请先配置 API Key');
     }
 
-    const url = `${this.config!.baseUrl}/mj/submit/imagine`;
-    
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config!.apiKey}`,
-        },
-        body: JSON.stringify({
-          ...request,
-          notifyHook: request.notifyHook || this.config!.notifyHook || '',
-        }),
-      });
+      // 获取 API 格式适配器
+      const apiFormat = this.config!.apiFormat || 'midjourney';
+      const adapter = getAdapter(apiFormat);
+      
+      console.log(`使用 ${apiFormat} 格式提交任务`);
 
-      if (!response.ok) {
-        throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
-      }
-
-      const data: SubmitImagineResponse = await response.json();
-
-      if (data.code !== 1) {
-        throw new Error(data.description || '提交任务失败');
-      }
+      // 使用适配器提交任务
+      const result = await adapter.submitTask(
+        this.config,
+        request.prompt,
+        request.base64Array || []
+      );
 
       // 创建任务记录
       const task: MJTask = {
-        id: data.result,
+        id: result.taskId,
         prompt: request.prompt,
-        status: 'pending',
+        status: result.status === 'success' ? 'success' : 'pending',
         timestamp: Date.now(),
-        discordChannelId: data.properties?.discordChannelId,
-        discordInstanceId: data.properties?.discordInstanceId,
+        imageUrl: result.imageUrl,
       };
 
       this.tasks.set(task.id, task);
-      console.log('MJ API: Task created and stored', task);
-      console.log('MJ API: Total tasks:', this.tasks.size);
+      console.log('API: Task created and stored', task);
+      console.log('API: Total tasks:', this.tasks.size);
       
       // 立即触发 UI 更新
-      console.log('MJ API: Dispatching task update event');
+      console.log('API: Dispatching task update event');
       window.dispatchEvent(new CustomEvent('mj-task-update', { detail: task }));
       
-      // 开始轮询任务状态
-      this.pollTaskStatus(task.id);
+      // 如果不是立即完成的任务，开始轮询任务状态
+      if (result.status !== 'success') {
+        this.pollTaskStatus(task.id);
+      }
 
       return task;
     } catch (error) {
-      console.error('Submit imagine failed:', error);
+      console.error('Submit task failed:', error);
       throw error;
     }
   }
@@ -170,30 +170,30 @@ class MidjourneyAPI {
       throw new Error('API 未配置');
     }
 
-    const url = `${this.config!.baseUrl}/mj/task/${taskId}/fetch`;
-    console.log(`MJ API: Querying task at URL: ${url}`);
-
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.config!.apiKey}`,
+      // 获取 API 格式适配器
+      const apiFormat = this.config!.apiFormat || 'midjourney';
+      const adapter = getAdapter(apiFormat);
+      
+      console.log(`使用 ${apiFormat} 格式查询任务: ${taskId}`);
+
+      // 使用适配器查询任务
+      const result = await adapter.queryTask(this.config, taskId);
+
+      // 转换为统一的响应格式
+      return {
+        code: 1,
+        description: 'success',
+        result: {
+          id: taskId,
+          status: result.status,
+          progress: result.progress || '0',
+          imageUrl: result.imageUrl,
+          failReason: result.failReason,
         },
-      });
-
-      console.log(`MJ API: Query response status: ${response.status}`);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`MJ API: Query failed with status ${response.status}:`, errorText);
-        throw new Error(`查询任务失败: ${response.status} ${errorText}`);
-      }
-
-      const data: TaskQueryResponse = await response.json();
-      console.log(`MJ API: Query response data:`, data);
-      return data;
+      };
     } catch (error) {
-      console.error('MJ API: Query task exception:', error);
+      console.error('API: Query task exception:', error);
       throw error;
     }
   }
@@ -304,43 +304,41 @@ class MidjourneyAPI {
       throw new Error('API 未配置');
     }
 
-    const url = `${this.config!.baseUrl}/mj/submit/action`;
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config!.apiKey}`,
-        },
-        body: JSON.stringify({
-          taskId: action.taskId,
-          action: action.action,
-          index: action.index,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`操作失败: ${response.status}`);
+      // 获取 API 格式适配器
+      const apiFormat = this.config!.apiFormat || 'midjourney';
+      const adapter = getAdapter(apiFormat);
+      
+      // 检查适配器是否支持操作
+      if (!adapter.executeAction) {
+        throw new Error(`${apiFormat} 格式不支持此操作`);
       }
 
-      const data: SubmitImagineResponse = await response.json();
+      console.log(`使用 ${apiFormat} 格式执行操作: ${action.action}`);
 
-      if (data.code !== 1) {
-        throw new Error(data.description || '操作失败');
-      }
+      // 使用适配器执行操作
+      const result = await adapter.executeAction(
+        this.config,
+        action.taskId,
+        action.action,
+        action.index
+      );
 
       // 创建新任务
       const originalTask = this.tasks.get(action.taskId);
       const task: MJTask = {
-        id: data.result,
+        id: result.taskId,
         prompt: originalTask?.prompt || '',
-        status: 'pending',
+        status: result.status || 'pending',
         timestamp: Date.now(),
       };
 
       this.tasks.set(task.id, task);
-      this.pollTaskStatus(task.id);
+      
+      // 如果不是立即完成，开始轮询
+      if (result.status !== 'success') {
+        this.pollTaskStatus(task.id);
+      }
 
       return task;
     } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, X, Check, AlertCircle } from 'lucide-react';
 import { mjAPI, MJConfig } from '../utils/midjourneyAPI';
+import { API_FORMATS, APIFormat } from '../utils/apiFormats';
 
 interface MJConfigProps {
   onClose: () => void;
@@ -12,6 +13,9 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
     baseUrl: 'https://api.vectorengine.ai',
     modelName: 'midjourney',
     notifyHook: '',
+    apiFormat: 'midjourney',
+    botType: 'MID_JOURNEY',
+    requiresAuth: 'bearer',
   });
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
@@ -162,6 +166,30 @@ const MJConfigComponent: React.FC<MJConfigProps> = ({ onClose }) => {
             />
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               API 服务的基础地址
+            </p>
+          </div>
+
+          {/* API Format */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              API 格式 <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={config.apiFormat || 'midjourney'}
+              onChange={(e) => setConfig({ ...config, apiFormat: e.target.value as APIFormat })}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                       focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                       transition-all"
+            >
+              {Object.values(API_FORMATS).map((format) => (
+                <option key={format.id} value={format.id}>
+                  {format.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {API_FORMATS[config.apiFormat || 'midjourney'].description}
             </p>
           </div>
 
